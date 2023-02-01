@@ -21,7 +21,7 @@
 #define MAX_VOLUME       30
 #define DEFAULT_VOLUME   15
 
-#define OFFSET           50
+#define OFFSET           52
 #define DELAY_LEAD       2400 - OFFSET
 #define DELAY_BURST      600  - OFFSET
 #define DELAY_0          600  - OFFSET
@@ -151,7 +151,6 @@ void power(bool value) {
     if (gpiod_line_get_value(power_state_line) != (int)value) {
         send(POWER, ADDRESS);
     }
-    sleep(3);
 }
 
 bool set_realtime(void) {
@@ -183,11 +182,11 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    int value;
+    float value;
     char *endptr;
-    value = (int) strtol(argv[2], &endptr, 10);
+    value = (float) strtof(argv[2], &endptr);
     if (*endptr) {
-        perror("Argument 2 is not a valid integer\n");
+        perror("Argument 2 is not a valid number\n");
         return 1;
     }
 #endif
@@ -230,12 +229,22 @@ int main(int argc, char **argv) {
         goto release_line;
     }
 
+    // raw volume
     if (!strcmp(argv[1], "vol")) {
-        printf("Set volume to: %d\n", value);
+        printf("Set volume to: %d\n", (int) value);
         set_volume(value);
+    // power command
     } else if (!strcmp(argv[1], "power")) {
-        printf("Power: %d\n", value);
+        printf("Power: %d\n", (int) value);
         power(value);
+    } else if (!strcmp(argv[1], "shair_vol")) {
+        // convert airplay volume to raw value
+        int raw = (30 + value)*MAX_VOLUME/30;
+        if (raw < 0) {
+            raw = 0;
+        }
+        printf("Shairport-sync volume: %f, %d\n", value, raw);
+        set_volume(raw);
     }
 
     gpiod_line_release(ir_line);
