@@ -17,11 +17,11 @@
 #define POWER_STATE_PIN  132
 #define CHIP_NAME        "gpiochip0"
 
-#define VOLUME_FILE      "volume.txt"
+#define VOLUME_FILE      "/home/chip/ir/volume.txt"
 #define MAX_VOLUME       30
 #define DEFAULT_VOLUME   15
 
-#define OFFSET           52
+#define OFFSET           53
 #define DELAY_LEAD       2400 - OFFSET
 #define DELAY_BURST      600  - OFFSET
 #define DELAY_0          600  - OFFSET
@@ -133,6 +133,7 @@ void set_volume(uint8_t volume) {
     }
 
     if (gpiod_line_get_value(power_state_line) == 0) {
+        printf("Device is off\n");
         return;
     }
 
@@ -151,6 +152,7 @@ void power(bool value) {
     if (gpiod_line_get_value(power_state_line) != (int)value) {
         send(POWER, ADDRESS);
     }
+    sleep(5);
 }
 
 bool set_realtime(void) {
